@@ -7,16 +7,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.getenv("DEEPSEEK_API_KEY")
-if not api_key:
-    raise RuntimeError("DEEPSEEK_API_KEY 未设置，请在 .env 文件中配置")
-
-client = OpenAI(
-    api_key=api_key,
-    base_url="https://api.deepseek.com/v1",
-)
-
 DEFAULT_SYSTEM = "你是一个有用的 AI 助手。回答简洁准确，使用中文。"
+
+
+def _get_client() -> OpenAI:
+    """延迟初始化 OpenAI 客户端（避免构建时缺少 key 报错）"""
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "DEEPSEEK_API_KEY 未设置。"
+            "HF Spaces: Settings → Repository secrets 添加 DEEPSEEK_API_KEY"
+        )
+    return OpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
 
 
 def chat_completion(
@@ -25,6 +27,7 @@ def chat_completion(
     temperature: float = 0.7,
 ) -> str:
     """通用对话补全"""
+    client = _get_client()
     resp = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -38,6 +41,7 @@ def chat_completion(
 
 def summarize(text: str, max_sentences: int = 5) -> str:
     """文本摘要"""
+    client = _get_client()
     resp = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -54,6 +58,7 @@ def summarize(text: str, max_sentences: int = 5) -> str:
 
 def translate(text: str, target_language: str) -> tuple[str, str | None]:
     """翻译文本，返回 (翻译结果, 源语言)"""
+    client = _get_client()
     resp = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -79,6 +84,7 @@ def translate(text: str, target_language: str) -> tuple[str, str | None]:
 
 def analyze_sentiment(text: str) -> tuple[list[dict], str]:
     """情感分析，返回 (情感列表, 总体判断)"""
+    client = _get_client()
     resp = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
