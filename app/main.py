@@ -28,6 +28,23 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    """API 根路径"""
+    return {
+        "service": "AI API 网关",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": [
+            "GET  /health",
+            "POST /chat",
+            "POST /summarize",
+            "POST /translate",
+            "POST /analyze-sentiment",
+        ],
+    }
+
+
 # ==================== 路由 ====================
 
 
